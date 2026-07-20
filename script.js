@@ -134,4 +134,62 @@ function draw(){
 }
 draw();
 
-const loader=document.getElementById("loader");document.body.style.overflow="hidden";const loadingText=document.getElementById("loading-text");const progressFill=document.querySelector(".progress-fill");const texts=["Menyiapkan Pengalaman...","Memuat Portofolio...","Menyiapkan Animasi...","Hampir Siap..."];let percent=0,textIndex=0;const progress=setInterval(()=>{percent++;progressFill.style.width=percent+"%";if(percent%25===0&&textIndex<texts.length){loadingText.textContent=texts[textIndex++]}if(percent>=100){clearInterval(progress);setTimeout(()=>{loader.classList.add("hide");document.body.style.overflow="auto";},400)}},30);
+// loading screen: progress bar mengikuti proses loading beneran (gambar, font, dll),
+// bukan timer buatan. Baru selesai (100%) kalau window sudah benar-benar "load".
+(function(){
+  const loader = document.getElementById("loader");
+  const loadingText = document.getElementById("loading-text");
+  const progressFill = document.querySelector(".progress-fill");
+  const texts = ["Menyiapkan Pengalaman...","Memuat Portofolio...","Menyiapkan Animasi...","Hampir Siap..."];
+
+  document.body.style.overflow = "hidden";
+
+  let percent = 0;
+  let textIndex = 0;
+  let pageLoaded = false;
+
+  // progress "palsu" hanya untuk feedback visual, tapi DIBATASI maks 90%
+  // sampai window benar-benar selesai load. Jadi tidak pernah "selesai duluan"
+  // padahal asetnya belum siap.
+  const tick = setInterval(() => {
+    const cap = pageLoaded ? 100 : 90;
+    if (percent < cap) {
+      percent++;
+      progressFill.style.width = percent + "%";
+      if (percent % 25 === 0 && textIndex < texts.length) {
+        loadingText.textContent = texts[textIndex++];
+      }
+    }
+    if (percent >= 100) {
+      clearInterval(tick);
+      finishLoading();
+    }
+  }, 30);
+
+  function finishLoading(){
+    setTimeout(() => {
+      loader.classList.add("hide");
+      document.body.style.overflow = "auto";
+    }, 400);
+  }
+
+  // Tunggu semua resource (gambar, css, font, iframe, dll) benar-benar selesai load
+  function markLoaded(){
+    pageLoaded = true;
+    // pastikan font custom juga sudah siap sebelum dianggap "selesai"
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => { pageLoaded = true; });
+    }
+  }
+
+  if (document.readyState === "complete") {
+    markLoaded();
+  } else {
+    window.addEventListener("load", markLoaded);
+  }
+
+  // safety net: kalau karena suatu hal load event tidak pernah fire
+  // (misal ada resource yang gagal/hang), tetap paksa selesai setelah 8 detik
+  // supaya user tidak stuck permanen di loading screen.
+  setTimeout(() => { pageLoaded = true; }, 8000);
+})();
