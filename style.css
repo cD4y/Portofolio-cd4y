@@ -101,8 +101,23 @@
 
   section, header, footer{position:relative; z-index:1;}
 
-  .wrap{max-width:1240px; margin:0 auto; padding:0 40px;}
-  @media(max-width:768px){ .wrap{padding:0 22px;} }
+  /* ---------- responsive spacing tokens per device tier ---------- */
+  :root{
+    --wrap-pad: 40px;      /* desktop */
+    --section-pad: 130px;
+  }
+  @media(max-width:1024px){ :root{ --wrap-pad: 32px; --section-pad: 110px; } }   /* tablet: iPad, Galaxy Tab */
+  @media(max-width:768px){  :root{ --wrap-pad: 22px; --section-pad: 90px; } }    /* large phones landscape / small tablet */
+  @media(max-width:480px){  :root{ --wrap-pad: 18px; --section-pad: 70px; } }    /* Android & iOS phones portrait */
+  @media(max-width:360px){  :root{ --wrap-pad: 14px; --section-pad: 56px; } }    /* small Android (Galaxy S8/SE) */
+
+  .wrap{
+    max-width:1240px; margin:0 auto;
+    padding-top:0; padding-bottom:0;
+    /* max() menjaga jarak aman dari notch/rounded-corner iPhone saat landscape */
+    padding-left: max(var(--wrap-pad), env(safe-area-inset-left));
+    padding-right: max(var(--wrap-pad), env(safe-area-inset-right));
+  }
 
   a{color:inherit; text-decoration:none;}
   ul{list-style:none;}
@@ -127,6 +142,7 @@
   header{
     position:fixed; top:0; left:0; right:0; z-index:100;
     padding:18px 0;
+    padding-top: max(18px, env(safe-area-inset-top));
   }
   .nav-inner{
     max-width:1240px; margin:0 auto; padding:12px 26px;
@@ -328,8 +344,7 @@
   }
 
   /* ---------- section heading ---------- */
-  .section{padding:130px 0;}
-  @media(max-width:768px){ .section{padding:90px 0;} }
+  .section{padding:var(--section-pad) 0;}
   .section-head{margin-bottom:64px; max-width:640px;}
   .section-head .eyebrow{margin-bottom:18px;}
   .section-head h2{
@@ -342,11 +357,32 @@
   /* ---------- about ---------- */
   .about-grid{display:grid; grid-template-columns:0.9fr 1.1fr; gap:70px; align-items:center;}
   @media(max-width:860px){ .about-grid{grid-template-columns:1fr;} }
+  /* ukuran book bertingkat per device: desktop > tablet > HP besar (Android/iOS) > HP kecil */
+  :root{
+    --book-w: 270px;
+    --book-h: 375px;
+    --book-shift: 210px;   /* jarak translateX saat kebuka, sebanding dengan --book-w */
+    --book-margin: 0px;    /* ruang ekstra vertikal supaya efek buka tidak kepotong */
+  }
+  @media(max-width:1024px){
+    :root{ --book-w:240px; --book-h:335px; --book-shift:186px; --book-margin:24px; }
+  }
+  @media(max-width:768px){
+    :root{ --book-w:210px; --book-h:295px; --book-shift:150px; --book-margin:32px; }
+  }
+  @media(max-width:480px){
+    :root{ --book-w:190px; --book-h:270px; --book-shift:130px; --book-margin:40px; }
+  }
+  @media(max-width:360px){
+    :root{ --book-w:165px; --book-h:235px; --book-shift:112px; --book-margin:40px; }
+  }
+
   .book {
     position: relative;
     border-radius: 10px;
-    width: 270px;
-    height: 375px;
+    width: var(--book-w);
+    height: var(--book-h);
+    margin: var(--book-margin) auto;
     background-color: whitesmoke;
     -webkit-box-shadow: 1px 1px 5px #000;
     box-shadow: 1px 1px 5px #000;
@@ -367,7 +403,6 @@
     color: #000;
     transition-duration: 0.5s;
   }
-  @media(max-width:860px){ .book{ margin:0 auto; } }
   .cover,
   .inner {
     top: 0;
@@ -394,26 +429,41 @@
     -ms-flex-pack: center;
     justify-content: center;
   }
-  .book:hover .cover {
-    -webkit-transition: all 0.5s;
-    transition: all 0.5s;
-    -webkit-transform: rotatey(70deg);
-    -ms-transform: rotatey(70deg);
-    transform: rotatey(-70deg);
+  .book .text{
+    font-size: clamp(15px, 4vw, 20px);
+    font-weight: 400;
+    padding: 0 10px;
+    text-align: center;
   }
-  .book:hover .inner {
-    -webkit-transition: all 0.5s;
+
+  /* Desktop/laptop dengan mouse: efek buka pakai :hover, seperti semula */
+  @media (hover:hover) and (pointer:fine){
+    .book:hover .cover {
+      transition: all 0.5s;
+      transform: rotateY(-70deg);
+    }
+    .book:hover .inner {
+      transition: all 0.5s;
+      transform: rotateZ(10deg) rotateX(-3deg) rotateY(-10deg) translateX(var(--book-shift));
+      box-shadow: 1px 1px 20px #000a;
+    }
+    .book:hover {
+      transform: rotateZ(-10deg);
+    }
+  }
+
+  /* Android/iOS (layar sentuh): tidak ada hover, jadi efek buka dipicu tap lewat class .flipped (lihat script.js) */
+  .book.flipped .cover {
     transition: all 0.5s;
-    transform: rotateZ(10deg) rotateX(-3deg) rotateY(-10deg) translateX(210px);
-    -webkit-box-shadow: 1px 1px 20px #000a;
+    transform: rotateY(-70deg);
+  }
+  .book.flipped .inner {
+    transition: all 0.5s;
+    transform: rotateZ(10deg) rotateX(-3deg) rotateY(-10deg) translateX(var(--book-shift));
     box-shadow: 1px 1px 20px #000a;
   }
-  .book:hover {
+  .book.flipped {
     transform: rotateZ(-10deg);
-  }
-  .book .text{
-    font-size: 20px;
-    font-weight: 400;
   }
   .about-text p{color:var(--text-dim); margin-bottom:20px; font-size:1.02rem;}
   .about-text strong{color:var(--text); font-weight:600;}
@@ -540,7 +590,7 @@
   .contact-form .btn-primary{width:100%; justify-content:center; margin-top:8px;}
 
   /* ---------- footer ---------- */
-  footer{padding:60px 0 40px; border-top:1px solid var(--border); margin-top:60px;}
+  footer{padding:60px 0 40px; padding-bottom: max(40px, env(safe-area-inset-bottom)); border-top:1px solid var(--border); margin-top:60px;}
   .footer-top{display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:40px; margin-bottom:50px;}
   .footer-brand p{color:var(--text-dim); font-size:0.9rem; max-width:320px; margin-top:14px;}
   .footer-links{display:flex; gap:70px; flex-wrap:wrap;}

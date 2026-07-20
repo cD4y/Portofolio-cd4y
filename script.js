@@ -57,6 +57,21 @@ const io = new IntersectionObserver((entries)=>{
 }, {threshold:0.15});
 revealEls.forEach(el=> io.observe(el));
 
+// "book" flip: di desktop pakai :hover (CSS), di Android/iOS pakai tap
+// karena layar sentuh tidak punya hover. Deteksi via matchMedia, bukan
+// UA sniffing, supaya tetap akurat walau device berubah orientasi/mouse.
+const bookEl = document.querySelector('.book');
+if(bookEl){
+  const bookText = bookEl.querySelector('.cover .text');
+  const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+  if(isTouchDevice){
+    if(bookText) bookText.textContent = 'Ketuk Saya';
+    bookEl.addEventListener('click', ()=>{
+      bookEl.classList.toggle('flipped');
+    });
+  }
+}
+
 // mobile menu toggle
 const burger = document.querySelector('.burger');
 const navLinks = document.querySelector('.nav-links');
