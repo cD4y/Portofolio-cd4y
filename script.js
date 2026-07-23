@@ -57,37 +57,19 @@ const io = new IntersectionObserver((entries)=>{
 }, {threshold:0.15});
 revealEls.forEach(el=> io.observe(el));
 
-// "book" flip: di desktop pakai :hover (CSS), di Android/iOS pakai tap
-// karena layar sentuh tidak punya hover. Deteksi via matchMedia, bukan
-// UA sniffing, supaya tetap akurat walau device berubah orientasi/mouse.
-const bookEl = document.querySelector('.book');
-if(bookEl){
-  const bookText = bookEl.querySelector('.cover .text');
-  const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-  if(isTouchDevice){
-    if(bookText) bookText.textContent = 'Ketuk Saya';
-    bookEl.addEventListener('click', ()=>{
-      bookEl.classList.toggle('flipped');
-    });
-  }
-}
-
 // mobile menu toggle
 const burger = document.querySelector('.burger');
 const navLinks = document.querySelector('.nav-links');
 burger.addEventListener('click', ()=>{
-  const open = navLinks.style.display === 'flex';
-  navLinks.style.display = open ? 'none' : 'flex';
-  navLinks.style.flexDirection = 'column';
-  navLinks.style.position='absolute';
-  navLinks.style.top='60px'; navLinks.style.left='18px'; navLinks.style.right='18px';
-  navLinks.style.background='var(--nav-bg-solid)';
-  navLinks.style.border='1px solid var(--border)';
-  navLinks.style.borderRadius='16px';
-  navLinks.style.padding='20px';
+  navLinks.classList.toggle('open');
 });
 
-// ambient particle canvas
+// close the mobile menu when a nav link is tapped
+navLinks.querySelectorAll('a').forEach(link=>{
+  link.addEventListener('click', ()=> navLinks.classList.remove('open'));
+});
+
+// ambient particle canvas (connecting dots web)
 const canvas = document.createElement('canvas');
 canvas.id = 'bg-canvas';
 document.body.prepend(canvas);
@@ -105,41 +87,39 @@ function initParticles(){
   }));
 }
 resize(); initParticles();
-window.addEventListener('resize', ()=>{ resize(); initParticles(); });
 
-// slow-drifting dot-grid pattern, drawn on the same canvas (cheap: no extra DOM/paint layer)
-const patternSpacing = 46;
-let patternOffset = 0;
-function drawPattern(){
-  patternOffset = (patternOffset + 0.012) % patternSpacing;
-  const isDark = root.getAttribute('data-theme') === 'dark';
-  ctx.fillStyle = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)';
-  for(let x = -patternSpacing + patternOffset; x < w + patternSpacing; x += patternSpacing){
-    for(let y = -patternSpacing + patternOffset; y < h + patternSpacing; y += patternSpacing){
-      ctx.beginPath();
-      ctx.arc(x, y, 1.3, 0, Math.PI*2);
-      ctx.fill();
-    }
-  }
-}
+// Mobile browsers fire 'resize' when the address-bar toolbar hides/shows on scroll,
+// even though the width hasn't changed. Rebuilding everything on that noise causes
+// visible flicker/jank. Only rebuild for a genuine width change (rotation, real resize),
+// and debounce so rapid-fire events collapse into one update.
+let lastWidth = window.innerWidth;
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    const newWidth = window.innerWidth;
+    if(newWidth === lastWidth) return; // height-only change (toolbar) — ignore
+    lastWidth = newWidth;
+    resize(); initParticles(); rebuildStarOrbs();
+  }, 150);
+});
 
 function draw(){
   ctx.clearRect(0,0,w,h);
-  drawPattern();
   for(let i=0;i<particles.length;i++){
     const p = particles[i];
     p.x += p.vx; p.y += p.vy;
     if(p.x<0) p.x=w; if(p.x>w) p.x=0;
     if(p.y<0) p.y=h; if(p.y>h) p.y=0;
     ctx.beginPath();
-    ctx.fillStyle = 'rgba(255,97,248,0.55)';
+    ctx.fillStyle = 'rgba(255,143,192,0.55)';
     ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
     ctx.fill();
     for(let j=i+1;j<particles.length;j++){
       const q = particles[j];
       const dx=p.x-q.x, dy=p.y-q.y, dist=Math.sqrt(dx*dx+dy*dy);
       if(dist<130){
-        ctx.strokeStyle = `rgba(255,97,248,${0.15*(1-dist/130)})`;
+        ctx.strokeStyle = `rgba(255,143,192,${0.15*(1-dist/130)})`;
         ctx.lineWidth=1;
         ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
       }
@@ -149,62 +129,51 @@ function draw(){
 }
 draw();
 
-// loading screen: progress bar mengikuti proses loading beneran (gambar, font, dll),
-// bukan timer buatan. Baru selesai (100%) kalau window sudah benar-benar "load".
-(function(){
-  const loader = document.getElementById("loader");
-  const loadingText = document.getElementById("loading-text");
-  const progressFill = document.querySelector(".progress-fill");
-  const texts = ["Menyiapkan Pengalaman...","Memuat Portofolio...","Menyiapkan Animasi...","Hampir Siap..."];
+// star orbs: real DOM elements (not canvas) that pop up at a random spot, twinkle
+// quickly, then re-appear somewhere new — never lingering in the same place twice.
+const starField = document.createElement('div');
+starField.id = 'star-field';
+document.body.prepend(starField); // sits below page content, above base background
 
-  document.body.style.overflow = "hidden";
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  let percent = 0;
-  let textIndex = 0;
-  let pageLoaded = false;
+function cycleStar(star){
+  if(!star.isConnected) return; // stopped once removed (e.g. on resize rebuild)
 
-  // progress "palsu" hanya untuk feedback visual, tapi DIBATASI maks 90%
-  // sampai window benar-benar selesai load. Jadi tidak pernah "selesai duluan"
-  // padahal asetnya belum siap.
-  const tick = setInterval(() => {
-    const cap = pageLoaded ? 100 : 90;
-    if (percent < cap) {
-      percent++;
-      progressFill.style.width = percent + "%";
-      if (percent % 25 === 0 && textIndex < texts.length) {
-        loadingText.textContent = texts[textIndex++];
-      }
-    }
-    if (percent >= 100) {
-      clearInterval(tick);
-      finishLoading();
-    }
-  }, 30);
+  const size = (Math.random()*6 + 6).toFixed(1); // 6–12px
+  const left = (Math.random()*100).toFixed(2);
+  const top = (Math.random()*100).toFixed(2);
+  const dur = (Math.random()*1.3 + 0.9).toFixed(2); // 0.9–2.2s: quick twinkle
 
-  function finishLoading(){
-    setTimeout(() => {
-      loader.classList.add("hide");
-      document.body.style.overflow = "auto";
-    }, 400);
+  star.style.width = size + 'px';
+  star.style.height = size + 'px';
+  star.style.left = left + '%';
+  star.style.top = top + '%';
+
+  if(prefersReducedMotion){
+    star.style.opacity = '0.55'; // static, no motion
+    return;
   }
 
-  // Tunggu semua resource (gambar, css, font, iframe, dll) benar-benar selesai load
-  function markLoaded(){
-    pageLoaded = true;
-    // pastikan font custom juga sudah siap sebelum dianggap "selesai"
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { pageLoaded = true; });
-    }
-  }
+  // restart the CSS animation from scratch at the new position
+  star.style.animation = 'none';
+  void star.offsetWidth; // force reflow
+  star.style.animation = `starTwinkle ${dur}s ease-in-out`;
 
-  if (document.readyState === "complete") {
-    markLoaded();
-  } else {
-    window.addEventListener("load", markLoaded);
-  }
+  const pause = Math.random()*300; // brief random gap before it pops up elsewhere
+  setTimeout(()=> cycleStar(star), dur*1000 + pause);
+}
 
-  // safety net: kalau karena suatu hal load event tidak pernah fire
-  // (misal ada resource yang gagal/hang), tetap paksa selesai setelah 8 detik
-  // supaya user tidak stuck permanen di loading screen.
-  setTimeout(() => { pageLoaded = true; }, 8000);
-})();
+function rebuildStarOrbs(){
+  starField.innerHTML = '';
+  const count = Math.min(70, Math.floor(window.innerWidth / 18)); // more orbs on screen
+  for(let i=0;i<count;i++){
+    const star = document.createElement('span');
+    star.className = 'star-orb';
+    starField.appendChild(star);
+    setTimeout(()=> cycleStar(star), Math.random()*1500); // desync initial appearance
+  }
+}
+rebuildStarOrbs();
+
+const loader=document.getElementById("loader");document.body.style.overflow="hidden";const loadingText=document.getElementById("loading-text");const progressFill=document.querySelector(".progress-fill");const texts=["Menyiapkan Pengalaman...","Memuat Portofolio...","Menyiapkan Animasi...","Hampir Siap..."];let percent=0,textIndex=0;const progress=setInterval(()=>{percent++;progressFill.style.width=percent+"%";if(percent%25===0&&textIndex<texts.length){loadingText.textContent=texts[textIndex++]}if(percent>=100){clearInterval(progress);setTimeout(()=>{loader.classList.add("hide");document.body.style.overflow="auto";},400)}},30);
