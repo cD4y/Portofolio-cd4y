@@ -2,14 +2,17 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>CD4Y — Portofolio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Reyes — Creative Developer</title>
+<meta name="description" content="Nova Reyes — perancang produk & front-end engineer yang membangun antarmuka imersif dan berperforma tinggi untuk brand dan startup ambisius.">
+<meta name="theme-color" content="#FF8FC0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<a class="skip-link" href="#main-content">Lewati ke konten utama</a>
 
 <div id="loader"><div class="loader-bg"></div><div class="loader-container"><div class="logo-ring"><div class="logo-core">N</div></div><h1>CD4Y</h1><p id="loading-text">Memuat Pengalaman...</p><div class="progress"><div class="progress-fill"></div></div></div></div>
 
@@ -21,7 +24,9 @@
 <header>
   <div class="nav-inner">
     <div class="logo"><span class="dot"></span>CD4Y</div>
-    <div class="nav-links">
+    <button class="burger" aria-label="Buka menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <div class="nav-backdrop" id="nav-backdrop"></div>
+    <div class="nav-links" id="nav-links">
       <nav><ul>
         <li><a href="#about">Tentang</a></li>
         <li><a href="#skills">Keahlian</a></li>
@@ -30,21 +35,23 @@
         <li><a href="#services">Layanan</a></li>
         <li><a href="#blog">Blog</a></li>
       </ul></nav>
+      <div class="nav-actions">
+        <div class="toggle-switch" title="Ubah mode gelap">
+          <label class="switch-label">
+            <input type="checkbox" class="checkbox" id="theme-toggle" aria-label="Ubah mode gelap">
+            <span class="slider">
+              <svg aria-hidden="true" focusable="false" class="icon icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+              <svg aria-hidden="true" focusable="false" class="icon icon-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+            </span>
+          </label>
+        </div>
+        <a href="#contact" class="nav-cta">Kontak</a>
+      </div>
     </div>
-    <div class="toggle-switch" title="Ubah mode gelap">
-      <label class="switch-label">
-        <input type="checkbox" class="checkbox" id="theme-toggle">
-        <span class="slider">
-          <svg class="icon icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-          <svg class="icon icon-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
-        </span>
-      </label>
-    </div>
-    <a href="#contact" class="nav-cta">Kontak</a>
-    <button class="burger"><span></span><span></span><span></span></button>
   </div>
 </header>
 
+<main id="main-content">
 <!-- HERO -->
 <section class="hero">
   <div class="wrap">
@@ -59,19 +66,19 @@
       </div>
       <div class="social-toggle">
         <a href="https://wa.me/6281234567890" target="_blank" rel="noopener" class="social-icon" aria-label="WhatsApp">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 00-8.5 15.2L2 22l4.9-1.5A10 10 0 1012 2z"/><path d="M8.5 8.6c.2-.6.7-.6 1.1-.6.3 0 .6 0 .8.5.3.6.9 2 1 2.1.1.2.1.4 0 .6-.2.3-.3.5-.5.7-.2.2-.4.4-.2.8.3.6 1 1.4 1.7 2 .8.7 1.4 1 1.7 1.1.3.1.5.1.7-.1.2-.2.8-.9 1-1.2.2-.3.4-.2.6-.1.2.1 1.5.7 1.8.8.3.1.5.2.5.4.1.5-.1 1.1-.4 1.5-.3.4-1.2.9-2.4.7-1.5-.2-3.3-1-4.8-2.4-1.3-1.2-2.2-2.6-2.6-3.6-.3-.9-.3-1.8.1-2.4z"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 00-8.5 15.2L2 22l4.9-1.5A10 10 0 1012 2z"/><path d="M8.5 8.6c.2-.6.7-.6 1.1-.6.3 0 .6 0 .8.5.3.6.9 2 1 2.1.1.2.1.4 0 .6-.2.3-.3.5-.5.7-.2.2-.4.4-.2.8.3.6 1 1.4 1.7 2 .8.7 1.4 1 1.7 1.1.3.1.5.1.7-.1.2-.2.8-.9 1-1.2.2-.3.4-.2.6-.1.2.1 1.5.7 1.8.8.3.1.5.2.5.4.1.5-.1 1.1-.4 1.5-.3.4-1.2.9-2.4.7-1.5-.2-3.3-1-4.8-2.4-1.3-1.2-2.2-2.6-2.6-3.6-.3-.9-.3-1.8.1-2.4z"/></svg>
         </a>
         <a href="https://linkedin.com/in/username" target="_blank" rel="noopener" class="social-icon" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7.5 10v6M7.5 7.5v.01M11 16v-3.5c0-1.4 1-2.5 2.3-2.5s2.2 1 2.2 2.5V16"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7.5 10v6M7.5 7.5v.01M11 16v-3.5c0-1.4 1-2.5 2.3-2.5s2.2 1 2.2 2.5V16"/></svg>
         </a>
         <a href="https://github.com/username" target="_blank" rel="noopener" class="social-icon" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 00-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.3-3.4-1.3-.5-1.1-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.5-1.3.1-2.6 0 0 .8-.3 2.7 1 .8-.2 1.6-.3 2.5-.3s1.7.1 2.5.3c1.9-1.3 2.7-1 2.7-1 .6 1.3.2 2.3.1 2.6.6.7 1 1.6 1 2.7 0 3.8-2.4 4.6-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0012 2z"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 00-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.3-3.4-1.3-.5-1.1-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.5-1.3.1-2.6 0 0 .8-.3 2.7 1 .8-.2 1.6-.3 2.5-.3s1.7.1 2.5.3c1.9-1.3 2.7-1 2.7-1 .6 1.3.2 2.3.1 2.6.6.7 1 1.6 1 2.7 0 3.8-2.4 4.6-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0012 2z"/></svg>
         </a>
         <a href="https://instagram.com/username" target="_blank" rel="noopener" class="social-icon" aria-label="Instagram">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1"/></svg>
         </a>
         <a href="https://tiktok.com/@username" target="_blank" rel="noopener" class="social-icon" aria-label="TikTok">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3v9.5a3.5 3.5 0 11-3.5-3.5"/><path d="M16 3c0 2.5 1.8 4.5 4.3 4.7"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3v9.5a3.5 3.5 0 11-3.5-3.5"/><path d="M16 3c0 2.5 1.8 4.5 4.3 4.7"/></svg>
         </a>
       </div>
     </div>
@@ -79,7 +86,7 @@
       <div class="orbit-ring r2"><span class="orbit-node"></span></div>
       <div class="orbit-ring r1"><span class="orbit-node"></span></div>
       <div class="avatar-frame">
-        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="50" cy="36" r="18" stroke="url(#g1)" stroke-width="2"/>
           <path d="M20 88c0-18 13-30 30-30s30 12 30 30" stroke="url(#g1)" stroke-width="2"/>
           <defs><linearGradient id="g1" x1="0" y1="0" x2="100" y2="100">
@@ -131,22 +138,22 @@
     </div>
     <div class="skills-grid">
       <div class="skill-card glass reveal">
-        <div class="skill-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/></svg></div>
+        <div class="skill-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/></svg></div>
         <h3>Desain Antarmuka</h3>
         <p>Desain UI yang sistematis dan aksesibel di Figma dengan disiplin tipografi dan grid yang kuat.</p>
       </div>
       <div class="skill-card glass reveal">
-        <div class="skill-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div>
+        <div class="skill-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div>
         <h3>Rekayasa Front-End</h3>
         <p>React, TypeScript, dan animasi berperforma tinggi untuk antarmuka siap produksi.</p>
       </div>
       <div class="skill-card glass reveal">
-        <div class="skill-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <div class="skill-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
         <h3>Motion &amp; Interaksi</h3>
         <p>Koreografi scroll, mikro-interaksi, dan adegan 3D yang terasa disengaja.</p>
       </div>
       <div class="skill-card glass reveal">
-        <div class="skill-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <div class="skill-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
         <h3>Design System</h3>
         <p>Sistem berbasis token yang dapat berkembang di berbagai tim produk dan platform.</p>
       </div>
@@ -165,7 +172,7 @@
     <div class="gallery-grid">
       <div class="gallery-card glass reveal">
         <div class="gallery-thumb" style="--tint1:#FF61F8; --tint2:#FFA6FB;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
         </div>
         <div class="gallery-body">
           <span class="gallery-tag">Fintech · Web App</span>
@@ -176,7 +183,7 @@
       </div>
       <div class="gallery-card glass reveal">
         <div class="gallery-thumb" style="--tint1:#FFEA6C; --tint2:#FF61F8;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
         </div>
         <div class="gallery-body">
           <span class="gallery-tag">Produk AI · Branding</span>
@@ -187,7 +194,7 @@
       </div>
       <div class="gallery-card glass reveal">
         <div class="gallery-thumb" style="--tint1:#FFA6FB; --tint2:#FFFBA7;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M4 4h16v16H4z"/><path d="M4 14l4-4 4 4 4-6 4 6"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M4 4h16v16H4z"/><path d="M4 14l4-4 4 4 4-6 4 6"/></svg>
         </div>
         <div class="gallery-body">
           <span class="gallery-tag">3D · Eksperimen</span>
@@ -198,7 +205,7 @@
       </div>
       <div class="gallery-card glass reveal">
         <div class="gallery-thumb" style="--tint1:#FF61F8; --tint2:#FFEA6C;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M2 12h20M12 2v20"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M2 12h20M12 2v20"/></svg>
         </div>
         <div class="gallery-body">
           <span class="gallery-tag">SaaS · Design System</span>
@@ -209,7 +216,7 @@
       </div>
       <div class="gallery-card glass reveal">
         <div class="gallery-thumb" style="--tint1:#FFFBA7; --tint2:#FF61F8;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>
         </div>
         <div class="gallery-body">
           <span class="gallery-tag">E-commerce · UX</span>
@@ -220,7 +227,7 @@
       </div>
       <div class="gallery-card glass reveal">
         <div class="gallery-thumb" style="--tint1:#FFEA6C; --tint2:#FFA6FB;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="4"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="4"/></svg>
         </div>
         <div class="gallery-body">
           <span class="gallery-tag">Aplikasi Mobile · UI</span>
@@ -354,30 +361,31 @@
         <h2>Mari membangun sesuatu yang luar biasa.</h2>
         <p>Punya proyek dalam pikiran, atau sekadar ingin menyapa? Kotak masuk saya selalu terbuka — biasanya saya membalas dalam satu hari.</p>
         <div class="contact-item">
-          <div class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/></svg></div>
+          <div class="icon-box"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/></svg></div>
           <div><strong>Email</strong><span>dayat2k5@gmail.com</span></div>
         </div>
         <div class="contact-item">
-          <div class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div class="icon-box"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
           <div><strong>Lokasi</strong><span>Bandar Lampung, Indonesia</span></div>
         </div>
         <div class="contact-item">
-          <div class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <div class="icon-box"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
           <div><strong>Ketersediaan</strong><span>Menerima proyek mulai Agustus 2026</span></div>
         </div>
       </div>
       <form class="contact-form glass reveal" onsubmit="return false;">
         <div class="form-row">
-          <div class="field"><label>Nama</label><input type="text" placeholder="Nama Anda"></div>
-          <div class="field"><label>Email</label><input type="email" placeholder="anda@perusahaan.com"></div>
+          <div class="field"><label for="contact-name">Nama</label><input type="text" id="contact-name" name="name" autocomplete="name" placeholder="Nama Anda"></div>
+          <div class="field"><label for="contact-email">Email</label><input type="email" id="contact-email" name="email" autocomplete="email" placeholder="anda@perusahaan.com"></div>
         </div>
-        <div class="field"><label>Subjek</label><input type="text" placeholder="Pertanyaan proyek"></div>
-        <div class="field"><label>Pesan</label><textarea placeholder="Ceritakan tentang proyek Anda..."></textarea></div>
+        <div class="field"><label for="contact-subject">Subjek</label><input type="text" id="contact-subject" name="subject" placeholder="Pertanyaan proyek"></div>
+        <div class="field"><label for="contact-message">Pesan</label><textarea id="contact-message" name="message" placeholder="Ceritakan tentang proyek Anda..."></textarea></div>
         <button class="btn btn-primary" type="submit">Kirim Pesan →</button>
       </form>
     </div>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="wrap">
@@ -406,14 +414,15 @@
     <div class="footer-bottom">
       <p>© 2026 Nova Reyes. Seluruh hak dilindungi.</p>
       <div class="social-row">
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 12a10 10 0 10-11.5 9.9v-7H8v-3h2.5V9.5A3.5 3.5 0 0114 6h3v3h-2a1 1 0 00-1 1v2h3l-.5 3H14v7A10 10 0 0022 12z"/></svg></a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-4 0v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+        <a href="#" aria-label="Facebook"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 12a10 10 0 10-11.5 9.9v-7H8v-3h2.5V9.5A3.5 3.5 0 0114 6h3v3h-2a1 1 0 00-1 1v2h3l-.5 3H14v7A10 10 0 0022 12z"/></svg></a>
+        <a href="#" aria-label="Instagram"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-4 0v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
       </div>
     </div>
   </div>
 </footer>
 
+<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
 <script src="script.js"></script>
 
 </body>

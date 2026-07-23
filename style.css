@@ -56,7 +56,17 @@
   }
 
   *{margin:0;padding:0;box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html{scroll-behavior:smooth; overscroll-behavior-y:none;}
+  html.lenis, html.lenis body{ height:auto; } /* Lenis manages the actual scroll offset itself */
+  html.lenis.lenis-smooth{ scroll-behavior:auto !important; } /* avoid fighting Lenis's own easing */
+  html{
+    scroll-behavior:smooth; overscroll-behavior-y:contain;
+    background: var(--bg); /* prevents a stray white/black strip on browsers where html is the scroll root */
+    overflow-x:clip; /* clips horizontal bleed without making html a second scroll container (which broke vertical scroll) */
+  }
+  /* hide the native scrollbar visual (scrolling still works) */
+  html{ -ms-overflow-style:none; scrollbar-width:none; }
+  html::-webkit-scrollbar{ width:0; height:0; display:none; }
+  body::-webkit-scrollbar{ width:0; height:0; display:none; }
 
   body{
     background: var(--bg);
@@ -64,9 +74,9 @@
     font-family: var(--font-body);
     line-height:1.6;
     overflow-x:hidden;
+    max-width:100vw;
     position:relative;
-    overscroll-behavior-y:none; /* stop rubber-band bounce from jostling fixed bg layers on iOS */
-    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain; /* still stops bounce from jostling fixed bg layers, without the "none" value's freeze-after-momentum bug on iOS/Android */
   }
 
   /* ambient backdrop */
@@ -127,13 +137,35 @@
   section, header, footer{position:relative; z-index:1;}
 
   .wrap{max-width:1240px; margin:0 auto; padding:0 40px;}
+  @media(min-width:1600px){ .wrap{max-width:1400px; padding:0 48px;} }
   @media(max-width:768px){ .wrap{padding:0 22px;} }
+  @media(max-width:400px){ .wrap{padding:0 16px;} }
 
   a{color:inherit; text-decoration:none;}
   ul{list-style:none;}
   img{max-width:100%; display:block;}
 
   ::selection{background: rgba(255,143,192,0.35); color:#000;}
+
+  /* ---------- accessibility: skip link + keyboard focus ring ----------
+     Neither of these change anything for a mouse user: the skip link sits
+     off-screen until it receives keyboard focus, and :focus-visible only
+     matches keyboard/programmatic focus, not mouse clicks. */
+  .skip-link{
+    position:fixed; top:-60px; left:12px; z-index:1000000;
+    background:var(--nav-bg-solid); color:var(--text);
+    padding:12px 20px; border-radius:10px; border:1px solid var(--border);
+    font-size:0.9rem; font-weight:600;
+    transition:top .25s ease;
+  }
+  .skip-link:focus{ top:12px; }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible,
+  [tabindex]:focus-visible{
+    outline:2px solid var(--border-glow);
+    outline-offset:3px;
+    border-radius:6px;
+  }
 
   /* ---------- scroll reveal ---------- */
   .reveal{opacity:0; transform:translateY(28px); transition:opacity .8s ease, transform .8s ease;}
@@ -152,29 +184,49 @@
   header{
     position:fixed; top:0; left:0; right:0; z-index:100;
     padding:18px 0;
+    transition: padding .35s ease;
   }
+  header.scrolled{ padding:10px 0; }
+
   .nav-inner{
     max-width:1240px; margin:0 auto; padding:12px 26px;
-    display:flex; align-items:center; justify-content:space-between;
+    display:flex; align-items:center; justify-content:space-between; gap:18px;
     background: var(--nav-bg);
     border:1px solid var(--border);
     border-radius: 999px;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    transition: background .35s ease, box-shadow .35s ease, padding .35s ease;
   }
+  header.scrolled .nav-inner{
+    background: var(--nav-bg-solid);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  }
+  /* wide monitors: let the pill breathe a little more instead of feeling squeezed in the center */
+  @media(min-width:1600px){ .nav-inner{ max-width:1400px; padding:14px 32px; } }
   @media(max-width:768px){ .nav-inner{margin:0 18px; padding:10px 18px;} }
+  @media(max-width:520px){ .nav-inner{padding:9px 14px;} }
 
   .logo{
     font-family:var(--font-display); font-weight:700; font-size:1.15rem;
     letter-spacing:0.02em;
     display:flex; align-items:center; gap:8px;
+    flex-shrink:0;
   }
   .logo .dot{width:8px;height:8px;border-radius:50%; background:var(--gradient); box-shadow:0 0 12px var(--purple-bright);}
+  @media(max-width:520px){ .logo{font-size:1rem;} }
 
-  nav ul{display:flex; gap:34px;}
+  /* nav-links: on desktop/wide this is one inline row (links + toggle + cta).
+     on tablet/mobile it becomes the collapsible dropdown panel — see breakpoint below. */
+  .nav-links{
+    display:flex; align-items:center; justify-content:flex-end;
+    flex:1; gap:clamp(20px, 3vw, 40px);
+  }
+  nav ul{display:flex; gap:clamp(18px, 2.4vw, 34px); flex-wrap:wrap;}
   nav a{
     font-size:0.88rem; color:var(--text-dim); font-weight:500;
     position:relative; padding:4px 0; transition:color .3s ease;
+    white-space:nowrap;
   }
   nav a::after{
     content:''; position:absolute; left:0; bottom:-2px; width:0; height:1px;
@@ -182,59 +234,96 @@
   }
   nav a:hover{color:var(--text);}
   nav a:hover::after{width:100%;}
-  .nav-links{display:flex;}
+
+  .nav-actions{ display:flex; align-items:center; gap:18px; flex-shrink:0; }
   .nav-cta{
     font-size:0.82rem; font-weight:600; padding:10px 20px; border-radius:999px;
-    background:var(--gradient); color:#000;
+    background:var(--gradient); color:#000; white-space:nowrap;
   }
-  .burger{display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none;}
-  .burger span{width:22px; height:2px; background:var(--text);}
-  @media(max-width:860px){
-    .nav-links{display:none;}
-    .burger{display:flex;}
 
-    /* mobile dropdown: opens downward as an inverted trapezoid —
-       wide at the top edge (matches the pill nav bar), narrowing toward the bottom */
-    .nav-links.open{
-      display:flex;
-      flex-direction:column;
-      position:absolute;
-      top:60px; left:18px; right:18px;
+  .burger{
+    display:none; flex-direction:column; gap:5px; cursor:pointer;
+    background:none; border:none; padding:6px; flex-shrink:0;
+  }
+  .burger span{width:22px; height:2px; background:var(--text); transition: transform .3s ease, opacity .3s ease;}
+  .burger.open span:nth-child(1){ transform: translateY(7px) rotate(45deg); }
+  .burger.open span:nth-child(2){ opacity:0; }
+  .burger.open span:nth-child(3){ transform: translateY(-7px) rotate(-45deg); }
+
+  /* Tablet + mobile: a dropdown panel opens directly under the pill header,
+     instead of a full-height panel sliding in from the right. Raised to 1024px
+     so tablets (portrait ~768–834px, landscape ~1024px) get this instead of a
+     cramped inline row.
+     NOTE: the previous version used transform:translateX(100%) to push the
+     panel off-screen while keeping box-shadow always-on. A fixed-position
+     element's box-shadow moves together with its transform, so once shifted
+     off-canvas the blurred shadow (offset -24px, blur 60px) still bled back
+     into the viewport as a stray glowing sliver along the right edge — that's
+     the "bug shape" on the right. Fixing it by animating max-height/opacity
+     from a position anchored to the header instead of translating the whole
+     panel off-screen, and only turning the box-shadow on for the open state. */
+  @media(max-width:1024px){
+    .burger{display:flex; z-index:210;}
+    .nav-inner{ position:relative; }
+
+    .nav-backdrop{
+      position:fixed; inset:0; z-index:150;
+      background:rgba(24,12,28,0.32);
+      backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+      opacity:0; pointer-events:none;
+      transition:opacity .35s ease;
+    }
+    .nav-backdrop.open{ opacity:1; pointer-events:auto; }
+
+    .nav-links{
+      position:absolute; top:calc(100% + 12px); right:0; z-index:200;
+      width:min(86vw, 340px);
+      max-width:calc(100vw - 36px); /* hard clamp: can never bleed past the viewport edge */
+      display:flex; flex-direction:column; align-items:flex-start;
+      gap:0;
       background:var(--nav-bg-solid);
       border:1px solid var(--border);
-      padding:34px 26px 26px;
-      clip-path: polygon(0% 0%, 100% 0%, 88% 100%, 12% 100%);
-      transform-origin:top center;
-      animation: navTrapezoidDrop .32s ease forwards;
+      border-radius: var(--radius);
+      padding:0 28px;
+      max-height:0;
+      overflow:hidden;
+      opacity:0; pointer-events:none;
+      box-shadow:none;
+      transition:max-height .45s cubic-bezier(.65,0,.35,1), opacity .3s ease, padding .45s ease, box-shadow .3s ease;
     }
-    .nav-links.open nav ul{
-      flex-direction:column;
-      align-items:center;
-      gap:20px;
-      width:100%;
+    .nav-links.open{
+      max-height:min(78vh, 78svh);
+      opacity:1; pointer-events:auto;
+      padding:26px 28px 30px;
+      overflow-y:auto; overscroll-behavior:contain;
+      box-shadow:0 24px 60px rgba(20,10,30,0.18);
     }
-    .nav-links.open nav a{
-      display:block;
-      text-align:center;
+
+    nav ul{
+      flex-direction:column; align-items:flex-start; gap:2px; width:100%;
+      counter-reset:navitem;
     }
-  }
-  @keyframes navTrapezoidDrop{
-    from{
-      clip-path: polygon(0% 0%, 100% 0%, 50% 0%, 50% 0%);
-      opacity:0;
+    nav ul li{ width:100%; }
+    nav a{
+      display:flex; align-items:baseline; gap:14px; width:100%;
+      font-family:var(--font-display); font-size:1.1rem; font-weight:600;
+      color:var(--text); padding:13px 2px;
+      border-bottom:1px solid var(--border);
     }
-    to{
-      clip-path: polygon(0% 0%, 100% 0%, 88% 100%, 12% 100%);
-      opacity:1;
+    nav a::before{
+      counter-increment:navitem;
+      content:counter(navitem, decimal-leading-zero);
+      font-family:var(--font-mono); font-size:0.7rem; font-weight:500;
+      color:var(--accent-strong); opacity:0.65; flex-shrink:0;
     }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .nav-links.open{ animation:none; clip-path: polygon(0% 0%, 100% 0%, 88% 100%, 12% 100%); }
-  }
-  @media(max-width:520px){
-    .nav-cta{display:none;}
-    .logo{font-size:1rem;}
-    .nav-inner{padding:9px 14px;}
+    nav a::after{ display:none; } /* desktop underline-on-hover not needed here */
+
+    .nav-actions{
+      flex-direction:row; align-items:center; justify-content:space-between;
+      width:100%; margin:10px 0 4px; padding-top:18px;
+      border-top:1px solid var(--border); gap:16px;
+    }
+    .nav-cta{ flex:1; text-align:center; }
   }
 
   /* ---------- theme toggle ---------- */
@@ -268,8 +357,6 @@
   .toggle-switch .icon-sun{opacity:1;}
   .toggle-switch .checkbox:checked ~ .slider .icon-sun{opacity:0;}
   .toggle-switch .checkbox:checked ~ .slider .icon-moon{opacity:1;}
-  @media(max-width:860px){ .toggle-switch{margin-right:8px;} }
-
   /* ---------- hero social toggle ---------- */
   .social-toggle{
     display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:36px;
@@ -416,11 +503,13 @@
     background-color: whitesmoke;
     -webkit-box-shadow: 1px 1px 5px #000;
     box-shadow: 1px 1px 5px #000;
-    -webkit-transform: preserve-3d;
-    -ms-transform: preserve-3d;
-    transform: preserve-3d;
-    -webkit-perspective: 2000px;
-    perspective: 600px;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d; /* was "transform: preserve-3d" — an invalid value for `transform`
+      (that's a transform-style value), so the 3D flip on hover was being flattened instead of
+      layered in 3D space. Fixed without changing the visual target look. */
+    -webkit-perspective: 600px;
+    perspective: 600px; /* unified with the -webkit- value (was 2000px vs 600px, an inconsistent
+      duplicate that only mattered for very old browsers reading the prefixed property) */
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -646,6 +735,18 @@
   .social-icon{width:32px; height:32px;}
   .social-icon svg{width:15px; height:15px;}
   .eyebrow{font-size:0.7rem; padding:7px 12px;}
+}
+
+/* Placed at the end on purpose: an earlier prefers-reduced-motion block that
+   turns off .orbit-ring/.pulse/.typed-cursor animations would be overridden
+   by their own (later, equal-specificity) animation rules in normal CSS
+   cascade order — media-query scoping doesn't change source-order priority.
+   Keeping this last guarantees it wins when the user has reduced motion on. */
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  .orbit-ring{ animation:none; }
+  .eyebrow .pulse{ animation:none; opacity:1; }
+  .typed-cursor{ animation:none; opacity:1; }
 }
 
 #loader{position:fixed;inset:0;background:#F3ECFF;z-index:999999;display:flex;justify-content:center;align-items:center;transition:1s ease}#loader.hide{opacity:0;visibility:hidden}.loader-bg{position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,143,192,.25),transparent 45%),radial-gradient(circle at 70% 70%,rgba(185,140,255,.30),transparent 45%);animation:bgMove 8s infinite alternate}@keyframes bgMove{from{transform:scale(1)}to{transform:scale(1.2)}}.loader-container{position:relative;text-align:center;z-index:2}.logo-ring{width:120px;height:120px;margin:auto;border-radius:50%;background:conic-gradient(#FF8FC0,#FFC2DD,#B98CFF,#E3D1FF,#FF8FC0);display:flex;justify-content:center;align-items:center;animation:rotateRing 3s linear infinite;box-shadow:0 0 30px #FF8FC0,0 0 60px rgba(185,140,255,.5)}.logo-core{width:92px;height:92px;border-radius:50%;background:#000000;display:flex;justify-content:center;align-items:center;font-family:"Space Grotesk";font-size:42px;font-weight:bold;color:#fff}@keyframes rotateRing{to{transform:rotate(360deg)}}.loader-container h1{margin-top:30px;color:#000000;letter-spacing:6px}.loader-container p{color:#5A5A5A;margin:15px 0 35px}.progress{width:280px;height:5px;background:rgba(0,0,0,.08);border-radius:20px;overflow:hidden}.progress-fill{width:0;height:100%;background:linear-gradient(90deg,#FF8FC0,#B98CFF)}

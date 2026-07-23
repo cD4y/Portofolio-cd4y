@@ -1,3 +1,45 @@
+// smooth scrolling (buttery inertia scroll instead of the browser's default
+// linear "scroll-behavior:smooth" jump). Falls back silently to normal native
+// scrolling if the CDN script didn't load, and is skipped entirely when the
+// user has requested reduced motion.
+let lenis = null;
+const reduceMotionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+function initSmoothScroll(){
+  if(typeof Lenis === 'undefined' || reduceMotionMQ.matches) return;
+
+  lenis = new Lenis({
+    duration: 1.1,
+    easing: (t)=> 1 - Math.pow(1 - t, 4), // easeOutQuart: quick start, gentle settle
+    smoothWheel: true,
+    smoothTouch: false // native touch scroll already feels good on mobile; re-smoothing it adds lag
+  });
+
+  function raf(time){
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  // Let Lenis drive programmatic scroll instead of the CSS scroll-behavior,
+  // so both don't fight each other on the same anchor jump.
+  document.documentElement.style.scrollBehavior = 'auto';
+
+  // In-page nav links (#about, #skills, etc.) scroll with the same eased motion,
+  // offset so content doesn't land hidden under the fixed floating nav pill.
+  document.querySelectorAll('a[href^="#"]').forEach(link=>{
+    const targetId = link.getAttribute('href');
+    if(targetId.length <= 1) return; // skip bare "#" links
+    link.addEventListener('click', (e)=>{
+      const target = document.querySelector(targetId);
+      if(!target) return;
+      e.preventDefault();
+      lenis.scrollTo(target, { offset: -90 });
+    });
+  });
+}
+initSmoothScroll();
+
 // typing / deleting effect for job roles
 const typedRoleEl = document.getElementById('typed-role');
 const jobTitles = ['Pengembang Web', 'Desainer UI/UX', 'Pengembang Game', 'Analis Data'];
@@ -57,16 +99,58 @@ const io = new IntersectionObserver((entries)=>{
 }, {threshold:0.15});
 revealEls.forEach(el=> io.observe(el));
 
-// mobile menu toggle
+// header: elevate to a solid background + shadow once the page is scrolled
+const siteHeader = document.querySelector('header');
+let scrollTicking = false;
+function updateHeaderScrollState(){
+  siteHeader.classList.toggle('scrolled', window.scrollY > 12);
+  scrollTicking = false;
+}
+window.addEventListener('scroll', ()=>{
+  if(!scrollTicking){
+    requestAnimationFrame(updateHeaderScrollState);
+    scrollTicking = true;
+  }
+}, { passive:true });
+updateHeaderScrollState();
+
+// mobile menu toggle — flip classes; the slide-in panel visuals live entirely in CSS
 const burger = document.querySelector('.burger');
 const navLinks = document.querySelector('.nav-links');
-burger.addEventListener('click', ()=>{
-  navLinks.classList.toggle('open');
-});
+const navBackdrop = document.querySelector('.nav-backdrop');
 
-// close the mobile menu when a nav link is tapped
+// Matches the CSS breakpoint where .nav-links switches from an always-visible
+// inline row (desktop) to a collapsible dropdown (mobile/tablet).
+const mobileMenuQuery = window.matchMedia('(max-width: 1024px)');
+
+function setMenu(open){
+  navLinks.classList.toggle('open', open);
+  navBackdrop.classList.toggle('open', open);
+  burger.classList.toggle('open', open);
+  burger.setAttribute('aria-expanded', open);
+  syncNavInert();
+}
+
+// Accessibility fix: on mobile the closed dropdown was set to max-height:0 +
+// opacity:0, but its links stayed in the DOM and focusable — a keyboard user
+// tabbing through the page could tab into invisible links inside it. `inert`
+// removes hidden-and-closed nav-links from both focus and the a11y tree,
+// without touching anything visual. Only applied on mobile: on desktop the
+// same element is the always-visible inline nav and must stay interactive.
+function syncNavInert(){
+  const shouldBeInert = mobileMenuQuery.matches && !navLinks.classList.contains('open');
+  navLinks.toggleAttribute('inert', shouldBeInert);
+}
+syncNavInert();
+mobileMenuQuery.addEventListener('change', syncNavInert);
+
+burger.addEventListener('click', ()=> setMenu(!navLinks.classList.contains('open')));
+navBackdrop.addEventListener('click', ()=> setMenu(false));
 navLinks.querySelectorAll('a').forEach(link=>{
-  link.addEventListener('click', ()=> navLinks.classList.remove('open'));
+  link.addEventListener('click', ()=> setMenu(false));
+});
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') setMenu(false);
 });
 
 // ambient particle canvas (connecting dots web)
@@ -104,30 +188,48 @@ window.addEventListener('resize', ()=>{
   }, 150);
 });
 
-function draw(){
-  ctx.clearRect(0,0,w,h);
-  for(let i=0;i<particles.length;i++){
-    const p = particles[i];
-    p.x += p.vx; p.y += p.vy;
-    if(p.x<0) p.x=w; if(p.x>w) p.x=0;
-    if(p.y<0) p.y=h; if(p.y>h) p.y=0;
-    ctx.beginPath();
-    ctx.fillStyle = 'rgba(255,143,192,0.55)';
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fill();
-    for(let j=i+1;j<particles.length;j++){
-      const q = particles[j];
-      const dx=p.x-q.x, dy=p.y-q.y, dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<130){
-        ctx.strokeStyle = `rgba(255,143,192,${0.15*(1-dist/130)})`;
-        ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
+// Guard: on a browser/environment where 2D canvas isn't available, ctx would
+// be null and every draw() call would throw — silently skip the ambient
+// effect instead of raising a console error and doing nothing else useful.
+let rafId = null;
+if(ctx){
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    for(let i=0;i<particles.length;i++){
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0) p.x=w; if(p.x>w) p.x=0;
+      if(p.y<0) p.y=h; if(p.y>h) p.y=0;
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,143,192,0.55)';
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+      for(let j=i+1;j<particles.length;j++){
+        const q = particles[j];
+        const dx=p.x-q.x, dy=p.y-q.y, dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<130){
+          ctx.strokeStyle = `rgba(255,143,192,${0.15*(1-dist/130)})`;
+          ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
+        }
       }
     }
+    rafId = requestAnimationFrame(draw);
   }
-  requestAnimationFrame(draw);
+  draw();
+
+  // Performance fix: previously this loop ran forever, including while the
+  // tab was in the background (switched app, minimized, other tab focused).
+  // That burned CPU/battery for a canvas nobody could see. Pause on hide,
+  // resume on show.
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){
+      cancelAnimationFrame(rafId);
+    } else {
+      draw();
+    }
+  });
 }
-draw();
 
 // star orbs: real DOM elements (not canvas) that pop up at a random spot, twinkle
 // quickly, then re-appear somewhere new — never lingering in the same place twice.
@@ -141,8 +243,8 @@ function cycleStar(star){
   if(!star.isConnected) return; // stopped once removed (e.g. on resize rebuild)
 
   const size = (Math.random()*6 + 6).toFixed(1); // 6–12px
-  const left = (Math.random()*100).toFixed(2);
-  const top = (Math.random()*100).toFixed(2);
+  const left = (5 + Math.random()*90).toFixed(2); // keep 5–95%, away from the very edge
+  const top = (4 + Math.random()*92).toFixed(2);  // keep 4–96%, away from the very edge
   const dur = (Math.random()*1.3 + 0.9).toFixed(2); // 0.9–2.2s: quick twinkle
 
   star.style.width = size + 'px';
@@ -176,4 +278,28 @@ function rebuildStarOrbs(){
 }
 rebuildStarOrbs();
 
-const loader=document.getElementById("loader");document.body.style.overflow="hidden";const loadingText=document.getElementById("loading-text");const progressFill=document.querySelector(".progress-fill");const texts=["Menyiapkan Pengalaman...","Memuat Portofolio...","Menyiapkan Animasi...","Hampir Siap..."];let percent=0,textIndex=0;const progress=setInterval(()=>{percent++;progressFill.style.width=percent+"%";if(percent%25===0&&textIndex<texts.length){loadingText.textContent=texts[textIndex++]}if(percent>=100){clearInterval(progress);setTimeout(()=>{loader.classList.add("hide");document.body.style.overflow="auto";},400)}},30);
+// Loader: just runs the fake progress bar / text and fades the overlay out.
+// Scroll is never locked, so there's no way for it to get stuck.
+(function(){
+  const loader=document.getElementById("loader");
+  const loadingText=document.getElementById("loading-text");
+  const progressFill=document.querySelector(".progress-fill");
+  const texts=["Menyiapkan Pengalaman...","Memuat Portofolio...","Menyiapkan Animasi...","Hampir Siap..."];
+  let percent=0, textIndex=0, finished=false;
+
+  function finishLoading(){
+    if(finished) return;
+    finished=true;
+    clearInterval(progress);
+    loader.classList.add("hide");
+  }
+
+  const progress=setInterval(()=>{
+    percent++;
+    progressFill.style.width=percent+"%";
+    if(percent%25===0 && textIndex<texts.length){ loadingText.textContent=texts[textIndex++]; }
+    if(percent>=100){ setTimeout(finishLoading, 400); }
+  }, 30);
+
+  setTimeout(finishLoading, 6000);
+})();
